@@ -4,9 +4,8 @@ import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Athlete, CheckIn } from '@/types'
 import { Slider } from '@/components/ui/Slider'
-import { CheckCircle, AlertCircle, TrendingUp, Calendar, BarChart3, Home } from 'lucide-react'
+import { CheckCircle, AlertCircle, TrendingUp, Calendar, BarChart3 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import Link from 'next/link'
 
 export default function AthleteCheckinPage() {
   const params = useParams()
@@ -135,20 +134,11 @@ export default function AthleteCheckinPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-blue-600 bg-clip-text text-transparent">
-                {athlete.name}
-              </h1>
-              <p className="text-lg text-gray-600">{athlete.position} - Atlético de Madrid</p>
-            </div>
-            <Link
-              href="/admin"
-              className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors"
-            >
-              <Home className="h-4 w-4" />
-              <span>Panel Admin</span>
-            </Link>
+          <div className="mb-4">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-blue-600 bg-clip-text text-transparent">
+              {athlete.name}
+            </h1>
+            <p className="text-lg text-gray-600">{athlete.position} - Atlético de Madrid</p>
           </div>
         </div>
 
@@ -225,44 +215,44 @@ export default function AthleteCheckinPage() {
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
-  <CartesianGrid strokeDasharray="2 2" stroke="#f0f0f0" />
-  <XAxis 
-    dataKey="date" 
-    tick={{ fontSize: 12 }}
-    stroke="#666"
-  />
-  <YAxis 
-    domain={[1, 10]} 
-    ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
-    tick={{ fontSize: 12 }}
-    stroke="#666"
-  />
-  <Tooltip 
-    contentStyle={{
-      backgroundColor: 'white',
-      border: '1px solid #ccc',
-      borderRadius: '8px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-    }}
-  />
-  <Line 
-    type="monotone" 
-    dataKey="energy" 
-    stroke="#dc2626" 
-    strokeWidth={4}
-    dot={{ fill: '#dc2626', strokeWidth: 2, r: 6 }}
-    activeDot={{ r: 8, fill: '#dc2626' }}
-    name="Energía"
-  />
-  <Line 
-    type="monotone" 
-    dataKey="mood" 
-    stroke="#2563eb" 
-    strokeWidth={4}
-    dot={{ fill: '#2563eb', strokeWidth: 2, r: 6 }}
-    activeDot={{ r: 8, fill: '#2563eb' }}
-    name="Ánimo"
-  />
+                    <CartesianGrid strokeDasharray="2 2" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="date" 
+                      tick={{ fontSize: 12 }}
+                      stroke="#666"
+                    />
+                    <YAxis 
+                      domain={[1, 10]} 
+                      ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+                      tick={{ fontSize: 12 }}
+                      stroke="#666"
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #ccc',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="energy" 
+                      stroke="#dc2626" 
+                      strokeWidth={4}
+                      dot={{ fill: '#dc2626', strokeWidth: 2, r: 6 }}
+                      activeDot={{ r: 8, fill: '#dc2626' }}
+                      name="Energía"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="mood" 
+                      stroke="#2563eb" 
+                      strokeWidth={4}
+                      dot={{ fill: '#2563eb', strokeWidth: 2, r: 6 }}
+                      activeDot={{ r: 8, fill: '#2563eb' }}
+                      name="Ánimo"
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
