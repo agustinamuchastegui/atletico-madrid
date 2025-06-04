@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Athlete, CheckIn } from '@/types'
 import { Slider } from '@/components/ui/Slider'
 import { CheckCircle, AlertCircle, TrendingUp, Calendar, BarChart3 } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 export default function AthleteCheckinPage() {
   const params = useParams()
@@ -51,13 +51,13 @@ export default function AthleteCheckinPage() {
 
       setHasCheckedInToday(!!todayCheckin)
 
-      // Obtener últimos 7 check-ins para el gráfico
+      // Obtener últimos 30 check-ins para el gráfico
       const { data: recentData } = await supabase
         .from('checkins')
         .select('*')
         .eq('athlete_id', athleteData.id)
         .order('date', { ascending: false })
-        .limit(7)
+        .limit(30)
 
       setRecentCheckins(recentData || [])
     } catch (error) {
@@ -119,15 +119,6 @@ export default function AthleteCheckinPage() {
       </div>
     )
   }
-
-  const chartData = recentCheckins
-    .slice()
-    .reverse()
-    .map(checkin => ({
-      date: new Date(checkin.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }),
-      energy: checkin.energy,
-      mood: checkin.mood
-    }))
 
   return (
     <div className="min-h-screen p-6">
@@ -206,61 +197,118 @@ export default function AthleteCheckinPage() {
             <div className="mb-6">
               <div className="flex items-center space-x-3 mb-4">
                 <BarChart3 className="h-6 w-6 text-blue-600" />
-                <h2 className="text-2xl font-bold text-gray-800">Tendencia Semanal</h2>
+                <h2 className="text-2xl font-bold text-gray-800">Mapa Emocional</h2>
               </div>
-              <p className="text-gray-600">Evolución de tus métricas psicofisiológicas</p>
+              <p className="text-gray-600">Evolución de tu estado psicofisiológico</p>
             </div>
 
             {recentCheckins.length > 0 ? (
-              <div className="h-64">
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
+                  <ScatterChart
+                    data={recentCheckins.map(checkin => ({
+                      x: checkin.mood,
+                      y: checkin.energy,
+                      date: new Date(checkin.date).toLocaleDateString('es-ES', { 
+                        day: 'numeric', 
+                        month: 'short' 
+                      })
+                    }))}
+                    margin={{ top: 20, right: 20, bottom: 80, left: 80 }}
+                  >
                     <CartesianGrid strokeDasharray="2 2" stroke="#f0f0f0" />
+                    
+                    {/* Eje X - Ánimo */}
                     <XAxis 
-                      dataKey="date" 
-                      tick={{ fontSize: 12 }}
+                      type="number"
+                      dataKey="x"
+                      domain={[0, 10]}
+                      ticks={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+                      tick={{ fontSize: 11 }}
                       stroke="#666"
-                    />
-                    <YAxis 
-                      domain={[1, 10]} 
-                      ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
-                      tick={{ fontSize: 12 }}
-                      stroke="#666"
-                    />
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: 'white',
-                        border: '1px solid #ccc',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                      label={{ 
+                        value: 'ÁNIMO (Displacer ← → Placer)', 
+                        position: 'insideBottom', 
+                        offset: -50,
+                        style: { textAnchor: 'middle', fontSize: '12px', fontWeight: 'bold' }
                       }}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="energy" 
-                      stroke="#dc2626" 
-                      strokeWidth={4}
-                      dot={{ fill: '#dc2626', strokeWidth: 2, r: 6 }}
-                      activeDot={{ r: 8, fill: '#dc2626' }}
-                      name="Energía"
+                    
+                    {/* Eje Y - Energía */}
+                    <YAxis 
+                      type="number"
+                      dataKey="y"
+                      domain={[0, 10]}
+                      ticks={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+                      tick={{ fontSize: 11 }}
+                      stroke="#666"
+                      label={{ 
+                        value: 'ENERGÍA (Baja ← → Alta)', 
+                        angle: -90, 
+                        position: 'insideLeft',
+                        style: { textAnchor: 'middle', fontSize: '12px', fontWeight: 'bold' }
+                      }}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="mood" 
-                      stroke="#2563eb" 
-                      strokeWidth={4}
-                      dot={{ fill: '#2563eb', strokeWidth: 2, r: 6 }}
-                      activeDot={{ r: 8, fill: '#2563eb' }}
-                      name="Ánimo"
+                    
+                    <Tooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-white p-3 border border-gray-300 rounded-lg shadow-lg">
+                              <p className="font-semibold">{data.date}</p>
+                              <p className="text-red-600">Energía: {data.y}</p>
+                              <p className="text-blue-600">Ánimo: {data.x}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
                     />
-                  </LineChart>
+                    
+                    {/* Puntos de datos */}
+                    <Scatter 
+                      dataKey="y"
+                      fill="#8884d8"
+                      shape={(props) => {
+                        const { cx, cy } = props;
+                        return (
+                          <circle 
+                            cx={cx} 
+                            cy={cy} 
+                            r={6} 
+                            fill="url(#gradient)" 
+                            stroke="#fff" 
+                            strokeWidth={2}
+                            style={{
+                              filter: 'drop-shadow(1px 1px 3px rgba(0,0,0,0.3))'
+                            }}
+                          />
+                        );
+                      }}
+                    />
+                    
+                    {/* Gradiente para los puntos */}
+                    <defs>
+                      <radialGradient id="gradient" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#dc2626" />
+                        <stop offset="100%" stopColor="#2563eb" />
+                      </radialGradient>
+                    </defs>
+                    
+                    {/* Líneas de referencia */}
+                    <defs>
+                      <line x1="0" y1="50%" x2="100%" y2="50%" stroke="#dc2626" strokeWidth="1" opacity="0.3"/>
+                      <line x1="50%" y1="0" x2="50%" y2="100%" stroke="#2563eb" strokeWidth="1" opacity="0.3"/>
+                    </defs>
+                  </ScatterChart>
                 </ResponsiveContainer>
               </div>
             ) : (
               <div className="text-center py-8">
                 <TrendingUp className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-600 mb-2">Sin datos suficientes</h3>
-                <p className="text-gray-500">Realiza más check-ins para ver tu progreso.</p>
+                <p className="text-gray-500">Realiza más check-ins para ver tu evolución.</p>
               </div>
             )}
 
