@@ -116,9 +116,6 @@ export default function AthleteCheckinPage() {
           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Atleta no encontrado</h1>
           <p className="text-gray-600 mb-4">El código proporcionado no corresponde a ningún atleta registrado.</p>
-          <Link href="/admin" className="bg-red-600 text-white px-6 py-3 rounded-lg font-medium">
-            Volver al Panel
-          </Link>
         </div>
       </div>
     )
