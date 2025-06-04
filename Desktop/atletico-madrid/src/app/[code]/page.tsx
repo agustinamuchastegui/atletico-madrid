@@ -225,24 +225,44 @@ export default function AthleteCheckinPage() {
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis domain={[1, 10]} />
-                    <Tooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="energy" 
-                      stroke="#dc2626" 
-                      strokeWidth={3}
-                      name="Energía"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="mood" 
-                      stroke="#2563eb" 
-                      strokeWidth={3}
-                      name="Ánimo"
-                    />
+  <CartesianGrid strokeDasharray="2 2" stroke="#f0f0f0" />
+  <XAxis 
+    dataKey="date" 
+    tick={{ fontSize: 12 }}
+    stroke="#666"
+  />
+  <YAxis 
+    domain={[1, 10]} 
+    ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+    tick={{ fontSize: 12 }}
+    stroke="#666"
+  />
+  <Tooltip 
+    contentStyle={{
+      backgroundColor: 'white',
+      border: '1px solid #ccc',
+      borderRadius: '8px',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+    }}
+  />
+  <Line 
+    type="monotone" 
+    dataKey="energy" 
+    stroke="#dc2626" 
+    strokeWidth={4}
+    dot={{ fill: '#dc2626', strokeWidth: 2, r: 6 }}
+    activeDot={{ r: 8, fill: '#dc2626' }}
+    name="Energía"
+  />
+  <Line 
+    type="monotone" 
+    dataKey="mood" 
+    stroke="#2563eb" 
+    strokeWidth={4}
+    dot={{ fill: '#2563eb', strokeWidth: 2, r: 6 }}
+    activeDot={{ r: 8, fill: '#2563eb' }}
+    name="Ánimo"
+  />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
