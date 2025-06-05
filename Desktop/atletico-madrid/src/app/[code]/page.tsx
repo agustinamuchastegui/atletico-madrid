@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Athlete, CheckIn } from '@/types'
@@ -20,11 +20,7 @@ export default function AthleteCheckinPage() {
   const [recentCheckins, setRecentCheckins] = useState<CheckIn[]>([])
   const [showSuccess, setShowSuccess] = useState(false)
 
-  useEffect(() => {
-    fetchAthleteData()
-  }, [code])
-
-  const fetchAthleteData = async () => {
+  const fetchAthleteData = useCallback(async () => {
     try {
       // Obtener atleta por código
       const { data: athleteData } = await supabase
@@ -65,7 +61,11 @@ export default function AthleteCheckinPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [code])
+
+  useEffect(() => {
+    fetchAthleteData()
+  }, [fetchAthleteData])
 
   const handleSubmit = async () => {
     if (!athlete) return
@@ -129,6 +129,26 @@ export default function AthleteCheckinPage() {
       month: 'short' 
     })
   }))
+
+  // Componente personalizado para los puntos del scatter
+  const CustomDot = (props: { cx?: number; cy?: number }) => {
+    const { cx, cy } = props;
+    if (typeof cx !== 'number' || typeof cy !== 'number') return null;
+    
+    return (
+      <circle 
+        cx={cx} 
+        cy={cy} 
+        r={6} 
+        fill="url(#gradient)" 
+        stroke="#fff" 
+        strokeWidth={2}
+        style={{
+          filter: 'drop-shadow(1px 1px 3px rgba(0,0,0,0.3))'
+        }}
+      />
+    );
+  };
 
   return (
     <div className="min-h-screen p-6">
@@ -282,22 +302,7 @@ export default function AthleteCheckinPage() {
                         dataKey="y"
                         data={chartData}
                         fill="#8884d8"
-                        shape={(props: any) => {
-                          const { cx, cy } = props;
-                          return (
-                            <circle 
-                              cx={cx} 
-                              cy={cy} 
-                              r={6} 
-                              fill="url(#gradient)" 
-                              stroke="#fff" 
-                              strokeWidth={2}
-                              style={{
-                                filter: 'drop-shadow(1px 1px 3px rgba(0,0,0,0.3))'
-                              }}
-                            />
-                          );
-                        }}
+                        shape={CustomDot}
                       />
                     )}
                     
@@ -311,8 +316,7 @@ export default function AthleteCheckinPage() {
                         stroke="#fbbf24"
                         strokeWidth={3}
                         style={{
-                          filter: 'drop-shadow(2px 2px 6px rgba(251,191,36,0.5))',
-                          animation: 'pulse 2s infinite'
+                          filter: 'drop-shadow(2px 2px 6px rgba(251,191,36,0.5))'
                         }}
                       />
                     )}
