@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Athlete, CheckIn } from '@/types'
 import { Slider } from '@/components/ui/Slider'
 import { CheckCircle, AlertCircle, TrendingUp, Calendar, BarChart3 } from 'lucide-react'
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceDot } from 'recharts'
 
 export default function AthleteCheckinPage() {
   const params = useParams()
@@ -120,6 +120,16 @@ export default function AthleteCheckinPage() {
     )
   }
 
+  // Preparar datos para el gráfico
+  const chartData = recentCheckins.map(checkin => ({
+    x: checkin.mood,
+    y: checkin.energy,
+    date: new Date(checkin.date).toLocaleDateString('es-ES', { 
+      day: 'numeric', 
+      month: 'short' 
+    })
+  }))
+
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto">
@@ -181,6 +191,15 @@ export default function AthleteCheckinPage() {
                   color="blue"
                 />
 
+                {/* Preview del punto actual */}
+                <div className="bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300">
+                  <p className="text-sm text-gray-600 mb-2">Tu estado actual:</p>
+                  <div className="flex justify-between">
+                    <span className="text-red-600 font-semibold">Energía: {energy}</span>
+                    <span className="text-blue-600 font-semibold">Ánimo: {mood}</span>
+                  </div>
+                </div>
+
                 <button
                   onClick={handleSubmit}
                   disabled={submitting}
@@ -202,18 +221,11 @@ export default function AthleteCheckinPage() {
               <p className="text-gray-600">Evolución de tu estado psicofisiológico</p>
             </div>
 
-            {recentCheckins.length > 0 ? (
+            {recentCheckins.length > 0 || !hasCheckedInToday ? (
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <ScatterChart
-                    data={recentCheckins.map(checkin => ({
-                      x: checkin.mood,
-                      y: checkin.energy,
-                      date: new Date(checkin.date).toLocaleDateString('es-ES', { 
-                        day: 'numeric', 
-                        month: 'short' 
-                      })
-                    }))}
+                    data={chartData}
                     margin={{ top: 20, right: 20, bottom: 80, left: 80 }}
                   >
                     <CartesianGrid strokeDasharray="2 2" stroke="#f0f0f0" />
@@ -221,7 +233,6 @@ export default function AthleteCheckinPage() {
                     {/* Eje X - Ánimo */}
                     <XAxis 
                       type="number"
-                      dataKey="x"
                       domain={[0, 10]}
                       ticks={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
                       tick={{ fontSize: 11 }}
@@ -237,7 +248,6 @@ export default function AthleteCheckinPage() {
                     {/* Eje Y - Energía */}
                     <YAxis 
                       type="number"
-                      dataKey="y"
                       domain={[0, 10]}
                       ticks={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
                       tick={{ fontSize: 11 }}
@@ -266,40 +276,57 @@ export default function AthleteCheckinPage() {
                       }}
                     />
                     
-                    {/* Puntos de datos */}
-                    <Scatter 
-                      dataKey="y"
-                      fill="#8884d8"
-                      shape={(props) => {
-                        const { cx, cy } = props;
-                        return (
-                          <circle 
-                            cx={cx} 
-                            cy={cy} 
-                            r={6} 
-                            fill="url(#gradient)" 
-                            stroke="#fff" 
-                            strokeWidth={2}
-                            style={{
-                              filter: 'drop-shadow(1px 1px 3px rgba(0,0,0,0.3))'
-                            }}
-                          />
-                        );
-                      }}
-                    />
+                    {/* Puntos históricos */}
+                    {chartData.length > 0 && (
+                      <Scatter 
+                        dataKey="y"
+                        data={chartData}
+                        fill="#8884d8"
+                        shape={(props: any) => {
+                          const { cx, cy } = props;
+                          return (
+                            <circle 
+                              cx={cx} 
+                              cy={cy} 
+                              r={6} 
+                              fill="url(#gradient)" 
+                              stroke="#fff" 
+                              strokeWidth={2}
+                              style={{
+                                filter: 'drop-shadow(1px 1px 3px rgba(0,0,0,0.3))'
+                              }}
+                            />
+                          );
+                        }}
+                      />
+                    )}
                     
-                    {/* Gradiente para los puntos */}
+                    {/* Punto preview en tiempo real (solo si no ha hecho check-in hoy) */}
+                    {!hasCheckedInToday && (
+                      <ReferenceDot 
+                        x={mood} 
+                        y={energy} 
+                        r={10}
+                        fill="url(#previewGradient)"
+                        stroke="#fbbf24"
+                        strokeWidth={3}
+                        style={{
+                          filter: 'drop-shadow(2px 2px 6px rgba(251,191,36,0.5))',
+                          animation: 'pulse 2s infinite'
+                        }}
+                      />
+                    )}
+                    
+                    {/* Gradientes */}
                     <defs>
                       <radialGradient id="gradient" cx="50%" cy="50%" r="50%">
                         <stop offset="0%" stopColor="#dc2626" />
                         <stop offset="100%" stopColor="#2563eb" />
                       </radialGradient>
-                    </defs>
-                    
-                    {/* Líneas de referencia */}
-                    <defs>
-                      <line x1="0" y1="50%" x2="100%" y2="50%" stroke="#dc2626" strokeWidth="1" opacity="0.3"/>
-                      <line x1="50%" y1="0" x2="50%" y2="100%" stroke="#2563eb" strokeWidth="1" opacity="0.3"/>
+                      <radialGradient id="previewGradient" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#fbbf24" />
+                        <stop offset="100%" stopColor="#f59e0b" />
+                      </radialGradient>
                     </defs>
                   </ScatterChart>
                 </ResponsiveContainer>
@@ -309,6 +336,16 @@ export default function AthleteCheckinPage() {
                 <TrendingUp className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-600 mb-2">Sin datos suficientes</h3>
                 <p className="text-gray-500">Realiza más check-ins para ver tu evolución.</p>
+              </div>
+            )}
+
+            {/* Leyenda del punto preview */}
+            {!hasCheckedInToday && (
+              <div className="mt-4 text-center">
+                <p className="text-sm text-gray-600">
+                  <span className="inline-block w-3 h-3 bg-yellow-400 rounded-full mr-2"></span>
+                  Punto dorado = Tu estado actual (mueve los sliders para ver el cambio)
+                </p>
               </div>
             )}
 
